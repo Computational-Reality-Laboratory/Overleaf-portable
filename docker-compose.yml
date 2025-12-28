@@ -1,8 +1,6 @@
 services:
     sharelatex:
         restart: always
-        # Server Pro users:
-        # image: quay.io/sharelatex/sharelatex-pro
         image: sharelatex/sharelatex
         container_name: sharelatex
         depends_on:
@@ -14,16 +12,12 @@ services:
             - 80:80
         stop_grace_period: 60s
         volumes:
-            - ~/sharelatex_data:/var/lib/overleaf
-            ########################################################################
-            ####  Server Pro: Uncomment the following line to mount the docker  ####
-            ####             socket, required for Sibling Containers to work    ####
-            ########################################################################
-            # - /var/run/docker.sock:/var/run/docker.sock
+            - ./sharelatex_data:/var/lib/overleaf
         environment:
-
+            OVERLEAF_ALLOW_REGISTRATION: true
             OVERLEAF_APP_NAME: Overleaf Community Edition
-
+            OVERLEAF_ALLOW_PUBLIC_ACCESS: true
+            OVERLEAF_ALLOW_ANONYMOUS_READ_AND_WRITE_SHARING: true
             OVERLEAF_MONGO_URL: mongodb://mongo/sharelatex
 
             # Same property, unfortunately with different names in
@@ -68,41 +62,6 @@ services:
 
             # ENABLE_CRON_RESOURCE_DELETION: true
 
-            ################
-            ## Server Pro ##
-            ################
-
-            ## The Community Edition is intended for use in environments where all users are trusted and is not appropriate for
-            ## scenarios where isolation of users is required. Sandboxed Compiles are not available in the Community Edition,
-            ## so the following environment variables must be commented out to avoid compile issues.
-            ##
-            ## Sandboxed Compiles: https://docs.overleaf.com/on-premises/configuration/overleaf-toolkit/server-pro-only-configuration/sandboxed-compiles
-            SANDBOXED_COMPILES: 'true'
-            ### Bind-mount source for /var/lib/overleaf/data/compiles inside the container.
-            SANDBOXED_COMPILES_HOST_DIR_COMPILES: '/home/user/sharelatex_data/data/compiles'
-            ### Bind-mount source for /var/lib/overleaf/data/output inside the container.
-            SANDBOXED_COMPILES_HOST_DIR_OUTPUT: '/home/user/sharelatex_data/data/output'
-            ### Backwards compatibility (before Server Pro 5.5)
-            DOCKER_RUNNER: 'true'
-            SANDBOXED_COMPILES_SIBLING_CONTAINERS: 'true'
-
-            ## Works with test LDAP server shown at bottom of docker compose
-            # OVERLEAF_LDAP_URL: 'ldap://ldap:389'
-            # OVERLEAF_LDAP_SEARCH_BASE: 'ou=people,dc=planetexpress,dc=com'
-            # OVERLEAF_LDAP_SEARCH_FILTER: '(uid={{username}})'
-            # OVERLEAF_LDAP_BIND_DN: 'cn=admin,dc=planetexpress,dc=com'
-            # OVERLEAF_LDAP_BIND_CREDENTIALS: 'GoodNewsEveryone'
-            # OVERLEAF_LDAP_EMAIL_ATT: 'mail'
-            # OVERLEAF_LDAP_NAME_ATT: 'cn'
-            # OVERLEAF_LDAP_LAST_NAME_ATT: 'sn'
-            # OVERLEAF_LDAP_UPDATE_USER_DETAILS_ON_LOGIN: 'true'
-
-            # OVERLEAF_TEMPLATES_USER_ID: "578773160210479700917ee5"
-            # OVERLEAF_NEW_PROJECT_TEMPLATE_LINKS: '[ {"name":"All Templates","url":"/templates/all"}]'
-
-
-            # OVERLEAF_PROXY_LEARN: "true"
-
     mongo:
         restart: always
         image: mongo:6.0
@@ -129,23 +88,3 @@ services:
         container_name: redis
         volumes:
             - ~/redis_data:/data
-
-    # ldap:
-    #    restart: always
-    #    image: rroemhild/test-openldap
-    #    container_name: ldap
-
-    # See https://github.com/jwilder/nginx-proxy for documentation on how to configure the nginx-proxy container,
-    # and https://github.com/overleaf/overleaf/wiki/HTTPS-reverse-proxy-using-Nginx for an example of some recommended
-    # settings. We recommend using a properly managed nginx instance outside of the Overleaf Server Pro setup,
-    # but the example here can be used if you'd prefer to run everything with docker-compose
-
-    # nginx-proxy:
-    #     image: jwilder/nginx-proxy
-    #     container_name: nginx-proxy
-    #     ports:
-    #       - "80:80"
-    #       - "443:443"
-    #     volumes:
-    #       - /var/run/docker.sock:/tmp/docker.sock:ro
-    #       - /home/overleaf/tmp:/etc/nginx/certs
